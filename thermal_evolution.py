@@ -94,71 +94,71 @@ def A7int_function(radius):
     return radius**2. * density(radius)**(GAMMA + 1.)
 
 
-def A13int_function(x, ric_): #not used
+def A13int_function(radius, ric): 
     """ Voir equation A.13 in Labrosse 2015, this is the function inside the integrale """
-    A = x**2. * (1 - x**2. - A_RHO * x**4.)\
-       * (x**2 - ric_**2. /L_RHO**2) * (1. - 3. / 10. * (x**2. + ric_**2. / L_RHO**2.))
+    A = radius**2. * (1 - radius**2. - A_RHO * radius**4.)\
+       * (radius**2 - ric**2. /L_RHO**2) * (1. - 3. / 10. * (radius**2. + ric**2. / L_RHO**2.))
     return A
 
 
 # Functions for the P (PL, PC, PX)
 
 
-def power_secular_cooling(r_):
+def power_secular_cooling(radius):
     """ from equation A7 (Labrosse 2015) """
-    result, foo = scODE.quad(A7int_function, r_, R_OC)
-    Pc = -4. * np.pi * CP / density(r_)**GAMMA\
-        * (dTL_dr_ic(r_) + 2. * GAMMA * RHO_0 * melting_temperature(r_)
-           * r_ / (density(r_) * L_RHO**2.)
-           * (1 + 2. * A_RHO * r_**2. / L_RHO**2.)) * result
+    result, foo = scODE.quad(A7int_function, radius, R_OC)
+    Pc = -4. * np.pi * CP / density(radius)**GAMMA\
+        * (dTL_dr_ic(radius) + 2. * GAMMA * RHO_0 * melting_temperature(radius)
+           * radius / (density(radius) * L_RHO**2.)
+           * (1 + 2. * A_RHO * radius**2. / L_RHO**2.)) * result
     return Pc
 
 
-def power_secular_cooling2(r):
+def power_secular_cooling2(radius):
     """ from equation A.8 (Labrosse 2015) """
     Pc2 = -4. * np.pi / 3. * RHO_0 * CP * L_RHO**3. \
-        * (1 - r**2. / L_RHO**2 - A_RHO * r**4. / L_RHO**4.)**(-GAMMA)\
-        * (dTL_dr_ic(r) + 2. * GAMMA * melting_temperature(r) * r / L_RHO**2. *
-           (1 + 2. * A_RHO * r**2. / L_RHO**2)
-           / (1 - r**2. / L_RHO**2. - A_RHO * r**4. / L_RHO**4.)) \
-        * (fC(R_OC / L_RHO, GAMMA) - fC(r / L_RHO, GAMMA))
+        * (1 - radius**2. / L_RHO**2 - A_RHO * radius**4. / L_RHO**4.)**(-GAMMA)\
+        * (dTL_dr_ic(radius) + 2. * GAMMA * melting_temperature(radius) * radius / L_RHO**2. *
+           (1 + 2. * A_RHO * radius**2. / L_RHO**2)
+           / (1 - radius**2. / L_RHO**2. - A_RHO * radius**4. / L_RHO**4.)) \
+        * (fC(R_OC / L_RHO, GAMMA) - fC(radius / L_RHO, GAMMA))
     return Pc2
 
 
-def power_latent_heat(r):
+def power_latent_heat(radius):
     """ from equation A.5 (Labrosse 2015) """
-    return 4. * np.pi * r**2. * melting_temperature(r) * density(r) * DELTA_S
+    return 4. * np.pi * radius**2. * melting_temperature(radius) * density(radius) * DELTA_S
 
 
-def power_gravitational_heat(r):
+def power_gravitational_heat(radius):
     """ from equation A.13 (Labrosse 2015)"""
-    result, err = scODE.quad(A13int_function, r /
-                             L_RHO, R_OC / L_RHO, args=r)
-    return 8. * np.pi**2. * X0 * G * RHO_0**2. * BETA * r**2.\
+    result, err = scODE.quad(A13int_function, radius /
+                             L_RHO, R_OC / L_RHO, args=radius)
+    return 8. * np.pi**2. * X0 * G * RHO_0**2. * BETA * radius**2.\
         * L_RHO**2 / fC(R_OC / L_RHO, 0) * result
 
 
-def power_gravitational_heat2(r):
+def power_gravitational_heat2(radius):
     """ from equation A.14 (Labrosse 2015) """
-    return 8 * np.pi**2 * X0 * G * RHO_0**2 * BETA * r**2. \
+    return 8 * np.pi**2 * X0 * G * RHO_0**2 * BETA * radius**2. \
       * L_RHO**2. / fC(R_OC / L_RHO, 0) \
-      * (f_chi(R_OC / L_RHO, r) - f_chi(r / L_RHO, r))
+      * (f_chi(R_OC / L_RHO, radius) - f_chi(radius / L_RHO, radius))
 
 
 # Functions pour mathcal L, C, X (valeurs les plus precises)
 
-def latent_heat(r):
-    results, err = scODE.quad(power_latent_heat, 0, r)
+def latent_heat(radius):
+    results, err = scODE.quad(power_latent_heat, 0, radius)
     return results
 
 
-def secular_cooling(r):
-    results, err = scODE.quad(power_secular_cooling, 0, r)
+def secular_cooling(radius):
+    results, err = scODE.quad(power_secular_cooling, 0, radius)
     return results
 
 
-def gravitiational_heat(r):
-    results, err = scODE.quad(power_gravitational_heat, 0, r)
+def gravitiational_heat(radius):
+    results, err = scODE.quad(power_gravitational_heat, 0, radius)
     return results
 
 #########
