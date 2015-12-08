@@ -77,16 +77,16 @@ def f_chi(radius, ric):
                     + 1. / 5. * (1 + ric**2 / L_RHO**2.) * radius**2. - 13. / 70. * radius**4.)
 
 
-def calcTempFusion(r):
+def melting_temperature(radius):
     """ Calculate the melting temperature at the IC boundary at rIC """
-    return TL0 - K0 * M_P * r**2. / L_RHO**2. \
-      + M_X * X0 * r**3. / (L_RHO**3. * fC(R_OC / L_RHO, 0.))
+    return TL0 - K0 * M_P * radius**2. / L_RHO**2. \
+      + M_X * X0 * radius**3. / (L_RHO**3. * fC(R_OC / L_RHO, 0.))
 
 
-def calcDTLDrIC(r):
+def dTL_dr_ic(radius):
     """ Calculate the diff of melting temperature at the IC boundary at rIC """
-    return -K0 * M_P * 2. * r / L_RHO**2. \
-      + 3. * M_X * X0 * r**2. / (L_RHO**3. * fC(R_OC / L_RHO, 0.))
+    return -K0 * M_P * 2. * radius / L_RHO**2. \
+      + 3. * M_X * X0 * radius**2. / (L_RHO**3. * fC(R_OC / L_RHO, 0.))
 
 
 def calcA7intFunction(r):
@@ -107,7 +107,7 @@ def calcPC(r_):
     """ from equation A7 (Labrosse 2015) """
     result, err = scODE.quad(calcA7intFunction, r_, R_OC)
     Pc = -4. * np.pi * CP / density(r_)**GAMMA\
-        * (calcDTLDrIC(r_) + 2. * GAMMA * RHO_0 * calcTempFusion(r_)
+        * (dTL_dr_ic(r_) + 2. * GAMMA * RHO_0 * melting_temperature(r_)
            * r_ / (density(r_) * L_RHO**2.)
            * (1 + 2. * A_RHO * r_**2. / L_RHO**2.)) * result
     return Pc
@@ -117,7 +117,7 @@ def calcPC2(r):
     """ from equation A.8 (Labrosse 2015) """
     Pc2 = -4. * np.pi / 3. * RHO_0 * CP * L_RHO**3. \
         * (1 - r**2. / L_RHO**2 - A_RHO * r**4. / L_RHO**4.)**(-GAMMA)\
-        * (calcDTLDrIC(r) + 2. * GAMMA * calcTempFusion(r) * r / L_RHO**2. *
+        * (dTL_dr_ic(r) + 2. * GAMMA * melting_temperature(r) * r / L_RHO**2. *
            (1 + 2. * A_RHO * r**2. / L_RHO**2)
            / (1 - r**2. / L_RHO**2. - A_RHO * r**4. / L_RHO**4.)) \
         * (fC(R_OC / L_RHO, GAMMA) - fC(r / L_RHO, GAMMA))
@@ -126,7 +126,7 @@ def calcPC2(r):
 
 def calcPL(r):
     """ from equation A.5 (Labrosse 2015) """
-    return 4. * np.pi * r**2. * calcTempFusion(r) * density(r) * DELTA_S
+    return 4. * np.pi * r**2. * melting_temperature(r) * density(r) * DELTA_S
 
 
 def calcPX(r):
@@ -266,7 +266,7 @@ if __name__ == '__main__':
         axarr3[1].plot(c / 1.e3, np.zeros(200))
 
     axarr3[0].set_title('Tic et S as fn of radius for diff age of IC')
-    print TL0, calcTempFusion(R_IC_P)
+    print TL0, melting_temperature(R_IC_P)
 
     Pl = np.zeros(200)
     Pc = np.zeros(200)
