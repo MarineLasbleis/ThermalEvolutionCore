@@ -53,7 +53,7 @@ A_RHO = (5.*K_PRIM0-13.)/10.
 
 ### Numerical parameters
 
-Nc = 100 #number of steps in c (radius IC)
+N = 100 #number of steps in c (radius IC)
 
 
 
@@ -148,127 +148,128 @@ def calcmathcalX(r):
 #########
 
 
+if __name__ == '__main__':
 
-r = R_IC_P  ### Calcul pour r=r_ic
+    r = R_IC_P  ### Calcul pour r=r_ic
 
-fcOC = 
-TL0 = TL_RIC + K0*M_P*R_IC_P**2./L_RHO**2. + M_X*X0*R_IC_P**3./(L_RHO**3.*fcOC)
-
-
-### Latent heat
-
-mathcalL_approx=4.*np.pi/3. *RHO_0 * TL0*DELTA_S * r**3. \
-  * (  1-3./5.*( 1+K0/TL0*M_P )*r**2./L_RHO**2.*X0/(2*calcFC(R_OC/L_RHO,0.)*TL0)*M_X*r**3./L_RHO**3. )
-
-mathcalL,err=scODE.quad(calcPL,0,R_IC_P)
-
-print "latent heat", mathcalL,mathcalL_approx
-
-### Secular cooling
-
-mathcalC_approx=4.*np.pi/3.*RHO_0*CP*L_RHO*r**2*calcFC(R_OC/L_RHO,GAMMA)\
-  *( M_P*K0-GAMMA*TL0-M_X*X0/calcFC(R_OC/L_RHO,0.)*r/L_RHO )
-
-mathcalC,err=scODE.quad(calcPC,0,R_IC_P)
-
-print "secular cooling", mathcalC, mathcalC_approx
-
-### Compositional energy
-
-mathcalX,err=scODE.quad(calcPX,0,R_IC_P)
-mathcalX2,err=scODE.quad(calcPX2,0,R_IC_P)
-print "compositional energy", mathcalX, mathcalX2
-
-print "Total energy", mathcalX+ mathcalC+mathcalL
-
-### Age IC
-
-Aic=(mathcalL+mathcalX+mathcalC)/QCMB
-print 'Qcmb = ', QCMB, ' Watts'
-print Aic/(np.pi*1e7)/1e9, ' Gyrs'
-print QCMB/(calcPL(r)+calcPC(r)+calcPX(r)), ' m/s'
+    fcOC = 
+    TL0 = TL_RIC + K0*M_P*R_IC_P**2./L_RHO**2. + M_X*X0*R_IC_P**3./(L_RHO**3.*fcOC)
 
 
-plt.plot(np.linspace(7e12,15e12,20),(mathcalL+mathcalX+mathcalC)/np.linspace(7e12,15e12,20)/(np.pi*1e7)/1e9)
+    ### Latent heat
+
+    mathcalL_approx=4.*np.pi/3. *RHO_0 * TL0*DELTA_S * r**3. \
+      * (  1-3./5.*( 1+K0/TL0*M_P )*r**2./L_RHO**2.*X0/(2*calcFC(R_OC/L_RHO,0.)*TL0)*M_X*r**3./L_RHO**3. )
+
+    mathcalL,err=scODE.quad(calcPL,0,R_IC_P)
+
+    print "latent heat", mathcalL,mathcalL_approx
+
+    ### Secular cooling
+
+    mathcalC_approx=4.*np.pi/3.*RHO_0*CP*L_RHO*r**2*calcFC(R_OC/L_RHO,GAMMA)\
+      *( M_P*K0-GAMMA*TL0-M_X*X0/calcFC(R_OC/L_RHO,0.)*r/L_RHO )
+
+    mathcalC,err=scODE.quad(calcPC,0,R_IC_P)
+
+    print "secular cooling", mathcalC, mathcalC_approx
+
+    ### Compositional energy
+
+    mathcalX,err=scODE.quad(calcPX,0,R_IC_P)
+    mathcalX2,err=scODE.quad(calcPX2,0,R_IC_P)
+    print "compositional energy", mathcalX, mathcalX2
+
+    print "Total energy", mathcalX+ mathcalC+mathcalL
+
+    ### Age IC
+
+    Aic=(mathcalL+mathcalX+mathcalC)/QCMB
+    print 'Qcmb = ', QCMB, ' Watts'
+    print Aic/(np.pi*1e7)/1e9, ' Gyrs'
+    print QCMB/(calcPL(r)+calcPC(r)+calcPX(r)), ' m/s'
+
+
+    plt.plot(np.linspace(7e12,15e12,20),(mathcalL+mathcalX+mathcalC)/np.linspace(7e12,15e12,20)/(np.pi*1e7)/1e9)
 
 
 ### Graphs
 
-Qcmb=QCMB+np.arange(-3,7,2)*1e12
-print Qcmb
+    Qcmb=QCMB+np.arange(-3,7,2)*1e12
+    print Qcmb
 
-f, axarr = plt.subplots(2,1)
-f2, axarr2 = plt.subplots(2,1)
-f3, axarr3 = plt.subplots(2,1)
+    f, axarr = plt.subplots(2,1)
+    f2, axarr2 = plt.subplots(2,1)
+    f3, axarr3 = plt.subplots(2,1)
 
-c=np.linspace(0.1*R_IC_P,R_IC_P,200)
+    c=np.linspace(0.1*R_IC_P,R_IC_P,200)
 
-for Q in Qcmb:
-    
-    
-    dcdt=np.zeros(200)
-    t=np.zeros(200)
-    Tic=np.zeros(200)
-    S=np.zeros(200)
-    
+    for Q in Qcmb:
+
+
+        dcdt=np.zeros(200)
+        t=np.zeros(200)
+        Tic=np.zeros(200)
+        S=np.zeros(200)
+
+        for i in range(0,200):
+            dcdt[i] = Q/(calcPL(c[i])+calcPC(c[i])+calcPX(c[i]))
+            t[i] = (calcmathcalL(c[i])+calcmathcalX(c[i])+calcmathcalC(c[i]))/Q/(np.pi*1.e7*1.e6)
+            Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC(c[i])+calcPX(c[i]) )/ Q /c[i]
+            S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL0/K0 *( 1./Tic[i]-1)
+
+        tauIC=(mathcalL+mathcalX+mathcalC)/Q/(np.pi*1.e7*1.e6)
+
+        axarr[0].plot(c/1.e3,dcdt)
+        axarr[1].plot(t,c/1.e3)
+        axarr[1].plot(t,(R_IC_P)*(t/tauIC)**0.4/1.e3)
+        axarr2[0].plot(c/1.e3,Tic)
+        axarr2[0].plot(c/1.e3,np.ones(200))
+        axarr2[1].plot(c/1.e3,S*np.pi*1e7*1e9)
+        axarr2[1].plot(c/1.e3,np.zeros(200))
+
+    axarr[0].set_title('dcdt as fn of c')
+
+
+    axarr[1].set_title('c as fn of t')
+    axarr2[0].set_title('Tic and S as fn of radius for different values of Q')
+
+
+    for tauIC in (np.arange(200,1800,200)*1.e6*1.e7*np.pi):
+
+        Tic=np.zeros(200)
+        S=np.zeros(200)
+
+        for i in range(0,200):
+            Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC2(c[i])+calcPX2(c[i]) )/ (mathcalX+ mathcalC+mathcalL) /c[i] *tauIC
+            S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL_RIC/K0 *( 1./Tic[i]-1)
+
+
+        axarr3[0].plot(c/1.e3,Tic)
+        axarr3[0].plot(c/1.e3,np.ones(200))
+        axarr3[1].plot(c/1.e3,S*np.pi*1e7*1e9)
+        axarr3[1].plot(c/1.e3,np.zeros(200))
+
+    axarr3[0].set_title('Tic et S as fn of radius for diff age of IC')
+    print TL0, calcTempFusion(R_IC_P)
+
+
+
+    Pl=np.zeros(200)
+    Pc=np.zeros(200)
+    Px=np.zeros(200)
+
     for i in range(0,200):
-        dcdt[i] = Q/(calcPL(c[i])+calcPC(c[i])+calcPX(c[i]))
-        t[i] = (calcmathcalL(c[i])+calcmathcalX(c[i])+calcmathcalC(c[i]))/Q/(np.pi*1.e7*1.e6)
-        Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC(c[i])+calcPX(c[i]) )/ Q /c[i]
-        S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL0/K0 *( 1./Tic[i]-1)
+        Pl[i] = calcmathcalL(c[i])
+        Px[i] = calcmathcalX(c[i])
+        Pc[i] = calcmathcalC(c[i])
 
-    tauIC=(mathcalL+mathcalX+mathcalC)/Q/(np.pi*1.e7*1.e6)
-   
-    axarr[0].plot(c/1.e3,dcdt)
-    axarr[1].plot(t,c/1.e3)
-    axarr[1].plot(t,(R_IC_P)*(t/tauIC)**0.4/1.e3)
-    axarr2[0].plot(c/1.e3,Tic)
-    axarr2[0].plot(c/1.e3,np.ones(200))
-    axarr2[1].plot(c/1.e3,S*np.pi*1e7*1e9)
-    axarr2[1].plot(c/1.e3,np.zeros(200))
+    t=(Pl+Px+Pc)/QCMB/(np.pi*1.e7*1.e6)
 
-axarr[0].set_title('dcdt as fn of c')
+    f4, axarr4 = plt.subplots(1,2)
+    axarr4[0].plot(c/1.e3, Pl, c/1.e3, Px,c/1.e3, Pc,c/1.e3, Pl+Px+Pc)
+    axarr4[1].plot(t, Pl, t, Px,t, Pc,t, Pl+Px+Pc)
+    axarr4[0].set_title('energy as fn of radius (km)')
+    axarr4[1].set_title('energy as fn of time (Ma)')
 
-
-axarr[1].set_title('c as fn of t')
-axarr2[0].set_title('Tic and S as fn of radius for different values of Q')
-
-   
-for tauIC in (np.arange(200,1800,200)*1.e6*1.e7*np.pi):
-
-    Tic=np.zeros(200)
-    S=np.zeros(200)
-
-    for i in range(0,200):
-        Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC2(c[i])+calcPX2(c[i]) )/ (mathcalX+ mathcalC+mathcalL) /c[i] *tauIC
-        S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL_RIC/K0 *( 1./Tic[i]-1)
-
-
-    axarr3[0].plot(c/1.e3,Tic)
-    axarr3[0].plot(c/1.e3,np.ones(200))
-    axarr3[1].plot(c/1.e3,S*np.pi*1e7*1e9)
-    axarr3[1].plot(c/1.e3,np.zeros(200))
-
-axarr3[0].set_title('Tic et S as fn of radius for diff age of IC')
-print TL0, calcTempFusion(R_IC_P)
-
-
-
-Pl=np.zeros(200)
-Pc=np.zeros(200)
-Px=np.zeros(200)
-
-for i in range(0,200):
-    Pl[i] = calcmathcalL(c[i])
-    Px[i] = calcmathcalX(c[i])
-    Pc[i] = calcmathcalC(c[i])
-
-t=(Pl+Px+Pc)/QCMB/(np.pi*1.e7*1.e6)
-
-f4, axarr4 = plt.subplots(1,2)
-axarr4[0].plot(c/1.e3, Pl, c/1.e3, Px,c/1.e3, Pc,c/1.e3, Pl+Px+Pc)
-axarr4[1].plot(t, Pl, t, Px,t, Pc,t, Pl+Px+Pc)
-axarr4[0].set_title('energy as fn of radius (km)')
-axarr4[1].set_title('energy as fn of time (Ma)')
-
-plt.show()
+    plt.show()
