@@ -58,7 +58,7 @@ def density(radius):
     return RHO_0 * (1. - radius**2. / L_RHO**2. - A_RHO * radius**4. / L_RHO**4.)
 
 
-def gravity(radius):
+def gravity(radius): #not used
     """ Calculate the gravity at the radius r """
     return 4. * np.pi / 3. * G * RHO_0 * radius * \
       (1 - 3. / 5. * radius**2. / L_RHO**2. - 3. * A_RHO / 7. * radius**4. / L_RHO**4.)
@@ -89,12 +89,12 @@ def dTL_dr_ic(radius):
       + 3. * M_X * X0 * radius**2. / (L_RHO**3. * fC(R_OC / L_RHO, 0.))
 
 
-def calcA7intFunction(r):
+def A7int_function(radius):
     """ Voir equation A.7 in Labrosse 2015, this is the function inside the integrale """
-    return r**2. * density(r)**(GAMMA + 1.)
+    return radius**2. * density(radius)**(GAMMA + 1.)
 
 
-def calcA13intFunction(x, ric_):
+def A13int_function(x, ric_): #not used
     """ Voir equation A.13 in Labrosse 2015, this is the function inside the integrale """
     A = x**2. * (1 - x**2. - A_RHO * x**4.)\
        * (x**2 - ric_**2. /L_RHO**2) * (1. - 3. / 10. * (x**2. + ric_**2. / L_RHO**2.))
@@ -103,9 +103,10 @@ def calcA13intFunction(x, ric_):
 
 # Functions for the P (PL, PC, PX)
 
-def calcPC(r_):
+
+def power_secular_cooling(r_):
     """ from equation A7 (Labrosse 2015) """
-    result, err = scODE.quad(calcA7intFunction, r_, R_OC)
+    result, foo = scODE.quad(A7int_function, r_, R_OC)
     Pc = -4. * np.pi * CP / density(r_)**GAMMA\
         * (dTL_dr_ic(r_) + 2. * GAMMA * RHO_0 * melting_temperature(r_)
            * r_ / (density(r_) * L_RHO**2.)
@@ -113,7 +114,7 @@ def calcPC(r_):
     return Pc
 
 
-def calcPC2(r):
+def power_secular_cooling2(r):
     """ from equation A.8 (Labrosse 2015) """
     Pc2 = -4. * np.pi / 3. * RHO_0 * CP * L_RHO**3. \
         * (1 - r**2. / L_RHO**2 - A_RHO * r**4. / L_RHO**4.)**(-GAMMA)\
@@ -124,20 +125,20 @@ def calcPC2(r):
     return Pc2
 
 
-def calcPL(r):
+def power_latent_heat(r):
     """ from equation A.5 (Labrosse 2015) """
     return 4. * np.pi * r**2. * melting_temperature(r) * density(r) * DELTA_S
 
 
-def calcPX(r):
+def power_gravitational_heat(r):
     """ from equation A.13 (Labrosse 2015)"""
-    result, err = scODE.quad(calcA13intFunction, r /
+    result, err = scODE.quad(A13int_function, r /
                              L_RHO, R_OC / L_RHO, args=r)
     return 8. * np.pi**2. * X0 * G * RHO_0**2. * BETA * r**2.\
         * L_RHO**2 / fC(R_OC / L_RHO, 0) * result
 
 
-def calcPX2(r):
+def power_gravitational_heat2(r):
     """ from equation A.14 (Labrosse 2015) """
     return 8 * np.pi**2 * X0 * G * RHO_0**2 * BETA * r**2. \
       * L_RHO**2. / fC(R_OC / L_RHO, 0) \
@@ -146,18 +147,18 @@ def calcPX2(r):
 
 # Functions pour mathcal L, C, X (valeurs les plus precises)
 
-def calcmathcalL(r):
-    results, err = scODE.quad(calcPL, 0, r)
+def latent_heat(r):
+    results, err = scODE.quad(power_latent_heat, 0, r)
     return results
 
 
-def calcmathcalC(r):
-    results, err = scODE.quad(calcPC, 0, r)
+def secular_cooling(r):
+    results, err = scODE.quad(power_secular_cooling, 0, r)
     return results
 
 
-def calcmathcalX(r):
-    results, err = scODE.quad(calcPX, 0, r)
+def gravitiational_heat(r):
+    results, err = scODE.quad(power_gravitational_heat, 0, r)
     return results
 
 #########
@@ -180,18 +181,18 @@ if __name__ == '__main__':
     mathcalL_approx = 4. * np.pi / 3. * RHO_0 * TL0 * DELTA_S * r**3. \
         * (1 - 3. / 5. * (1 + K0 / TL0 * M_P) * r**2. / L_RHO**2.
            * X0 / (2 * fC(R_OC / L_RHO, 0.) * TL0) * M_X * r**3. / L_RHO**3.)
-    mathcalL, err = scODE.quad(calcPL, 0, R_IC_P)
+    mathcalL, err = scODE.quad(power_latent_heat, 0, R_IC_P)
     print "latent heat", mathcalL, mathcalL_approx
 
     # Secular cooling
     mathcalC_approx = 4. * np.pi / 3. * RHO_0 * CP * L_RHO * r**2 * fC(R_OC / L_RHO, GAMMA)\
         * (M_P * K0 - GAMMA * TL0 - M_X * X0 / fC(R_OC / L_RHO, 0.) * r / L_RHO)
-    mathcalC, err = scODE.quad(calcPC, 0, R_IC_P)
+    mathcalC, err = scODE.quad(power_secular_cooling, 0, R_IC_P)
     print "secular cooling", mathcalC, mathcalC_approx
 
     # Compositional energy
-    mathcalX, err = scODE.quad(calcPX, 0, R_IC_P)
-    mathcalX2, err = scODE.quad(calcPX2, 0, R_IC_P)
+    mathcalX, err = scODE.quad(power_gravitational_heat, 0, R_IC_P)
+    mathcalX2, err = scODE.quad(power_gravitational_heat2, 0, R_IC_P)
     print "compositional energy", mathcalX, mathcalX2
 
     print "Total energy", mathcalX + mathcalC + mathcalL
@@ -200,7 +201,7 @@ if __name__ == '__main__':
     Aic = (mathcalL + mathcalX + mathcalC) / QCMB
     print 'Qcmb = ', QCMB, ' Watts'
     print Aic / (np.pi * 1e7) / 1e9, ' Gyrs'
-    print QCMB / (calcPL(r) + calcPC(r) + calcPX(r)), ' m/s'
+    print QCMB / (power_latent_heat(r) + power_secular_cooling(r) + power_gravitational_heat(r)), ' m/s'
 
     plt.plot(np.linspace(7e12, 15e12, 20), (mathcalL + mathcalX +
                                             mathcalC) / np.linspace(7e12, 15e12, 20)
@@ -226,11 +227,11 @@ if __name__ == '__main__':
         S = np.zeros(200)
 
         for i in range(0, 200):
-            dcdt[i] = Q / (calcPL(c[i]) + calcPC(c[i]) + calcPX(c[i]))
-            t[i] = (calcmathcalL(c[i]) + calcmathcalX(c[i]) +
-                    calcmathcalC(c[i])) / Q / (np.pi * 1.e7 * 1.e6)
-            Tic[i] = 3. * KAPPA / (DTS_DTAD - 1) * (calcPL(c[i]) +
-                                                    calcPC(c[i]) + calcPX(c[i])) / Q / c[i]
+            dcdt[i] = Q / (power_latent_heat(c[i]) + power_secular_cooling(c[i]) + power_gravitational_heat(c[i]))
+            t[i] = (latent_heat(c[i]) + gravitiational_heat(c[i]) +
+                    secular_cooling(c[i])) / Q / (np.pi * 1.e7 * 1.e6)
+            Tic[i] = 3. * KAPPA / (DTS_DTAD - 1) * (power_latent_heat(c[i]) +
+                                                    power_secular_cooling(c[i]) + power_gravitational_heat(c[i])) / Q / c[i]
             S[i] = 3 * KAPPA * RHO_0 * G_PRIM * \
                 GAMMA * TL0 / K0 * (1. / Tic[i] - 1)
 
@@ -255,8 +256,8 @@ if __name__ == '__main__':
         S = np.zeros(200)
 
         for i in range(0, 200):
-            Tic[i] = 3. * KAPPA / (DTS_DTAD - 1) * (calcPL(c[i]) + calcPC2(
-                c[i]) + calcPX2(c[i])) / (mathcalX + mathcalC + mathcalL) / c[i] * tauIC
+            Tic[i] = 3. * KAPPA / (DTS_DTAD - 1) * (power_latent_heat(c[i]) + power_secular_cooling2(
+                c[i]) + power_gravitational_heat2(c[i])) / (mathcalX + mathcalC + mathcalL) / c[i] * tauIC
             S[i] = 3 * KAPPA * RHO_0 * G_PRIM * \
                 GAMMA * TL_RIC / K0 * (1. / Tic[i] - 1)
 
@@ -273,9 +274,9 @@ if __name__ == '__main__':
     Px = np.zeros(200)
 
     for i in range(0, 200):
-        Pl[i] = calcmathcalL(c[i])
-        Px[i] = calcmathcalX(c[i])
-        Pc[i] = calcmathcalC(c[i])
+        Pl[i] = latent_heat(c[i])
+        Px[i] = gravitiational_heat(c[i])
+        Pc[i] = secular_cooling(c[i])
 
     t = (Pl + Px + Pc) / QCMB / (np.pi * 1.e7 * 1.e6)
 
