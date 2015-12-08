@@ -64,17 +64,17 @@ def gravity(radius):
       (1 - 3. / 5. * radius**2. / L_RHO**2. - 3. * A_RHO / 7. * radius**4. / L_RHO**4.)
 
 
-def fC(x, d):
-    """ Calculate the approximate value of function fC(x,d)
+def fC(radius, gamma):
+    """ Calculate the approximate value of function fC(radius,gamma)
     (as defined in Labrosse 2015 eq. A.1.) """
-    return x**3. * (1 - 3. / 5. * (d + 1) * x**2.
-                    - 3. / 14. * (d + 1) * (2 * A_RHO - d) * x**4.)
+    return radius**3. * (1 - 3. / 5. * (gamma + 1) * radius**2.
+                    - 3. / 14. * (gamma + 1) * (2 * A_RHO - gamma) * radius**4.)
 
 
-def calcFxi(x, r_):
+def f_chi(radius, ric):
     """ return the function f_chi, equation A.15 in Labrosse 2015"""
-    return x**3. * (-r_**2 / 3. / L_RHO**2.
-                    + 1. / 5. * (1 + r_**2 / L_RHO**2.) * x**2. - 13. / 70. * x**4.)
+    return radius**3. * (-ric**2 / 3. / L_RHO**2.
+                    + 1. / 5. * (1 + ric**2 / L_RHO**2.) * radius**2. - 13. / 70. * radius**4.)
 
 
 def calcTempFusion(r):
@@ -141,7 +141,7 @@ def calcPX2(r):
     """ from equation A.14 (Labrosse 2015) """
     return 8 * np.pi**2 * X0 * G * RHO_0**2 * BETA * r**2. \
       * L_RHO**2. / fC(R_OC / L_RHO, 0) \
-      * (calcFxi(R_OC / L_RHO, r) - calcFxi(r / L_RHO, r))
+      * (f_chi(R_OC / L_RHO, r) - f_chi(r / L_RHO, r))
 
 
 # Functions pour mathcal L, C, X (valeurs les plus precises)
