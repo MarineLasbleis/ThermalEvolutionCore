@@ -13,41 +13,39 @@ import matplotlib.pyplot as plt
 
 ### Physical parameters
 
-rOC=3480.e3 #m
-rICp = 1221.e3 #m
+R_OC = 3480.e3 #m
+R_IC_P = 1221.e3 #m
 
-Qcmb0 = 10e12 # watts
-h = 0 #radiactivity
+QCMB = 10e12 # watts
+H = 0 #radiactivity  !!! Not implemented yet
 
 #from fitting PREM
-K0 =1403.e9 #Pa
-rho0 = 12451 #kg/m-3
-Kprim0 = 3.567 #no units
+K0 = 1403.e9 #Pa
+RHO_0 = 12451 #kg/m-3
+K_PRIM0 = 3.567 #no units
 
 G = 6.67384e-11 # m3/kg/s2
 
-DeltaS = 127 #J/K/kg
-mP =9e-9 #K/Pa
-mX = -21e3 #K
-TLricp=5700 #K
+DELTA_S = 127 #J/K/kg
+M_P = 9e-9 #K/Pa
+M_X = -21e3 #K
+TL_RIC = 5700 #K
 X0 = 5.6e-2 
-
-gamma=1.5
-
-Cp=750 #J/K/kg
-beta=0.83
+GAMMA = 1.5
+CP = 750 #J/K/kg
+BETA = 0.83
 
 
-dTsdTad=1.65
-k=200.#W/K/m
-kappa=k/rho0/Cp
-print "\kappa = ", kappa
+DTS_DTAD = 1.65
+k = 200.#W/K/m
+KAPPA = k/RHO_0/CP
+print "\kappa = ", KAPPA
 
-gprim=4./rICp
+G_PRIM = 4./R_IC_P
 
 ### Lenghts and constants
-Lrho =np.sqrt( 3.*K0/(2.*np.pi *G *rho0**2.) )
-Arho =(5.*Kprim0-13.)/10.
+L_RHO = np.sqrt(3.*K0/(2.*np.pi *G *RHO_0**2.))
+A_RHO = (5.*K_PRIM0-13.)/10.
 
     
 
@@ -55,7 +53,7 @@ Arho =(5.*Kprim0-13.)/10.
 
 ### Numerical parameters
 
-Nc=100 #number of steps in c (radius IC)
+Nc = 100 #number of steps in c (radius IC)
 
 
 
@@ -64,40 +62,39 @@ Nc=100 #number of steps in c (radius IC)
 
 def calcDensity(r):
     """ Calculate the density at the radius r """
-    return rho0*(1.-r**2./Lrho**2.-Arho*r**4./Lrho**4.)
+    return RHO_0*(1.-r**2./L_RHO**2.-A_RHO*r**4./L_RHO**4.)
 
 def calcGravity(r):
     """ Calculate the gravity at the radius r """
-    return 4.*np.pi/3.*G*rho0*r*(1-3./5.*r**2./Lrho**2.-3.*Arho/7.*r**4./Lrho**4.)
+    return 4.*np.pi/3.*G*RHO_0*r*(1-3./5.*r**2./L_RHO**2.-3.*A_RHO/7.*r**4./L_RHO**4.)
     
 def calcFC(x,d):
     """ Calculate the approximate value of function fC(x,d) (as defined in Labrosse 2015 eq. A.1.) """
-    return x**3.* ( 1 - 3./5. * (d+1) * x**2. - 3./14. *(d+1) * (2*Arho-d) * x**4. )
+    return x**3.* ( 1 - 3./5. * (d+1) * x**2. - 3./14. *(d+1) * (2*A_RHO-d) * x**4. )
 
 def calcFxi(x,r_):
     """ return the function f_\chi, equation A.15 in Labrosse 2015"""
-    return x**3. * ( -r_**2/3./Lrho**2. + 1./5. * (1+r_**2/Lrho**2.)*x**2. - 13./70. *x**4.)
+    return x**3. * ( -r_**2/3./L_RHO**2. + 1./5. * (1+r_**2/L_RHO**2.)*x**2. - 13./70. *x**4.)
 
 
-TL0=TLricp + K0*mP*rICp**2./Lrho**2. + mX*X0*rICp**3./(Lrho**3.*fcOC)
 
 
 def calcTempFusion(r):
     """ Calculate the melting temperature at the IC boundary at rIC """
-    return TL0 -K0*mP*r**2./Lrho**2. + mX*X0*r**3./(Lrho**3.*calcFC(rOC/Lrho,0.))
+    return TL0 -K0*M_P*r**2./L_RHO**2. + M_X*X0*r**3./(L_RHO**3.*calcFC(R_OC/L_RHO,0.))
 
 
 def calcDTLDrIC(r):
     """ Calculate the diff of melting temperature at the IC boundary at rIC """
-    return -K0*mP*2.*r/Lrho**2. + 3.*mX*X0*r**2./(Lrho**3.*calcFC(rOC/Lrho,0.))
+    return -K0*M_P*2.*r/L_RHO**2. + 3.*M_X*X0*r**2./(L_RHO**3.*calcFC(R_OC/L_RHO,0.))
 
 def calcA7intFunction(r):
     """ Voir equation A.7 in Labrosse 2015, this is the function inside the integrale """
-    return r**2.*calcDensity(r)**(gamma+1.)
+    return r**2.*calcDensity(r)**(GAMMA+1.)
 
 def calcA13intFunction(x,ric_):
     """ Voir equation A.13 in Labrosse 2015, this is the function inside the integrale """
-    A=x**2.*(1-x**2.-Arho*x**4.)*(x**2-ric_**2./Lrho**2)*(1.-3./10.*(x**2.+ric_**2./Lrho**2.))
+    A=x**2.*(1-x**2.-A_RHO*x**4.)*(x**2-ric_**2./L_RHO**2)*(1.-3./10.*(x**2.+ric_**2./L_RHO**2.))
     return A
 
 
@@ -105,32 +102,32 @@ def calcA13intFunction(x,ric_):
 
 def calcPC(r_):
     """ from equation A7 (Labrosse 2015) """
-    result, err=scODE.quad(calcA7intFunction,r_,rOC)
-    Pc=-4.*np.pi * Cp/ calcDensity(r_)**gamma\
-      *( calcDTLDrIC(r_) + 2.*gamma * rho0 *calcTempFusion(r_) *r_ / (calcDensity(r_)*Lrho**2.)*(1+2.*Arho*r_**2./Lrho**2.)  ) *result
+    result, err=scODE.quad(calcA7intFunction,r_,R_OC)
+    Pc=-4.*np.pi * CP/ calcDensity(r_)**GAMMA\
+      *( calcDTLDrIC(r_) + 2.*GAMMA * RHO_0 *calcTempFusion(r_) *r_ / (calcDensity(r_)*L_RHO**2.)*(1+2.*A_RHO*r_**2./L_RHO**2.)  ) *result
     return Pc
 
 def calcPC2(r):
     """ from equation A.8 (Labrosse 2015) """
-    Pc2=-4.*np.pi/3.*rho0*Cp*Lrho**3. \
-      *( 1-r**2./Lrho**2-Arho*r**4./Lrho**4. )**(-gamma)\
-      *(calcDTLDrIC(r)+2.*gamma*calcTempFusion(r)*r/Lrho**2.*(1+2.*Arho*r**2./Lrho**2)/ ( 1-r**2./Lrho**2.-Arho*r**4./Lrho**4. ) ) \
-      *(calcFC(rOC/Lrho,gamma)-calcFC(r/Lrho,gamma))
+    Pc2=-4.*np.pi/3.*RHO_0*CP*L_RHO**3. \
+      *( 1-r**2./L_RHO**2-A_RHO*r**4./L_RHO**4. )**(-GAMMA)\
+      *(calcDTLDrIC(r)+2.*GAMMA*calcTempFusion(r)*r/L_RHO**2.*(1+2.*A_RHO*r**2./L_RHO**2)/ ( 1-r**2./L_RHO**2.-A_RHO*r**4./L_RHO**4. ) ) \
+      *(calcFC(R_OC/L_RHO,GAMMA)-calcFC(r/L_RHO,GAMMA))
     return Pc2
 
 def calcPL(r):
     """ from equation A.5 (Labrosse 2015) """
-    return 4.*np.pi*r**2.*calcTempFusion(r)*calcDensity(r)*DeltaS
+    return 4.*np.pi*r**2.*calcTempFusion(r)*calcDensity(r)*DELTA_S
 
 
 def calcPX(r):
     """ from equation A.13 (Labrosse 2015)"""
-    result, err=scODE.quad(calcA13intFunction,r/Lrho,rOC/Lrho,args=r)
-    return 8.*np.pi**2.*X0*G*rho0**2.*beta*r**2.*Lrho**2/calcFC(rOC/Lrho,0)*result
+    result, err=scODE.quad(calcA13intFunction,r/L_RHO,R_OC/L_RHO,args=r)
+    return 8.*np.pi**2.*X0*G*RHO_0**2.*BETA*r**2.*L_RHO**2/calcFC(R_OC/L_RHO,0)*result
 
 def calcPX2(r):
     """ from equation A.14 (Labrosse 2015) """
-    return 8*np.pi**2 *X0 *G *rho**2*beta *r**2.*Lrho**2./calcFC(rOC/Lrho,0)*(calcFxi(rOC/Lrho,r)-calcFxi(r/Lrho,r))
+    return 8*np.pi**2 *X0 *G *rho**2*BETA *r**2.*L_RHO**2./calcFC(R_OC/L_RHO,0)*(calcFxi(R_OC/L_RHO,r)-calcFxi(r/L_RHO,r))
 
 
 ## Functions pour mathcal L, C, X (valeurs les plus precises)
@@ -152,41 +149,44 @@ def calcmathcalX(r):
 
 
 
-r=rICp  ### Calcul pour le dernier pas de temps
+r = R_IC_P  ### Calcul pour r=r_ic
+
+fcOC = 
+TL0 = TL_RIC + K0*M_P*R_IC_P**2./L_RHO**2. + M_X*X0*R_IC_P**3./(L_RHO**3.*fcOC)
 
 
 ### Latent heat
 
-mathcalL_approx=4.*np.pi/3. *rho0 * TL0*DeltaS * r**3. \
-  * (  1-3./5.*( 1+K0/TL0*mP )*r**2./Lrho**2.*X0/(2*calcFC(rOC/Lrho,0.)*TL0)*mX*r**3./Lrho**3. )
+mathcalL_approx=4.*np.pi/3. *RHO_0 * TL0*DELTA_S * r**3. \
+  * (  1-3./5.*( 1+K0/TL0*M_P )*r**2./L_RHO**2.*X0/(2*calcFC(R_OC/L_RHO,0.)*TL0)*M_X*r**3./L_RHO**3. )
 
-mathcalL,err=scODE.quad(calcPL,0,rICp)
+mathcalL,err=scODE.quad(calcPL,0,R_IC_P)
 
 print "latent heat", mathcalL,mathcalL_approx
 
 ### Secular cooling
 
-mathcalC_approx=4.*np.pi/3.*rho0*Cp*Lrho*r**2*calcFC(rOC/Lrho,gamma)\
-  *( mP*K0-gamma*TL0-mX*X0/calcFC(rOC/Lrho,0.)*r/Lrho )
+mathcalC_approx=4.*np.pi/3.*RHO_0*CP*L_RHO*r**2*calcFC(R_OC/L_RHO,GAMMA)\
+  *( M_P*K0-GAMMA*TL0-M_X*X0/calcFC(R_OC/L_RHO,0.)*r/L_RHO )
 
-mathcalC,err=scODE.quad(calcPC,0,rICp)
+mathcalC,err=scODE.quad(calcPC,0,R_IC_P)
 
 print "secular cooling", mathcalC, mathcalC_approx
 
 ### Compositional energy
 
-mathcalX,err=scODE.quad(calcPX,0,rICp)
-mathcalX2,err=scODE.quad(calcPX2,0,rICp)
+mathcalX,err=scODE.quad(calcPX,0,R_IC_P)
+mathcalX2,err=scODE.quad(calcPX2,0,R_IC_P)
 print "compositional energy", mathcalX, mathcalX2
 
 print "Total energy", mathcalX+ mathcalC+mathcalL
 
 ### Age IC
 
-Aic=(mathcalL+mathcalX+mathcalC)/Qcmb0
-print 'Qcmb = ', Qcmb0, ' Watts'
+Aic=(mathcalL+mathcalX+mathcalC)/QCMB
+print 'Qcmb = ', QCMB, ' Watts'
 print Aic/(np.pi*1e7)/1e9, ' Gyrs'
-print Qcmb0/(calcPL(r)+calcPC(r)+calcPX(r)), ' m/s'
+print QCMB/(calcPL(r)+calcPC(r)+calcPX(r)), ' m/s'
 
 
 plt.plot(np.linspace(7e12,15e12,20),(mathcalL+mathcalX+mathcalC)/np.linspace(7e12,15e12,20)/(np.pi*1e7)/1e9)
@@ -194,14 +194,14 @@ plt.plot(np.linspace(7e12,15e12,20),(mathcalL+mathcalX+mathcalC)/np.linspace(7e1
 
 ### Graphs
 
-Qcmb=Qcmb0+np.arange(-3,7,2)*1e12
+Qcmb=QCMB+np.arange(-3,7,2)*1e12
 print Qcmb
 
 f, axarr = plt.subplots(2,1)
 f2, axarr2 = plt.subplots(2,1)
 f3, axarr3 = plt.subplots(2,1)
 
-c=np.linspace(0.1*rICp,rICp,200)
+c=np.linspace(0.1*R_IC_P,R_IC_P,200)
 
 for Q in Qcmb:
     
@@ -214,14 +214,14 @@ for Q in Qcmb:
     for i in range(0,200):
         dcdt[i] = Q/(calcPL(c[i])+calcPC(c[i])+calcPX(c[i]))
         t[i] = (calcmathcalL(c[i])+calcmathcalX(c[i])+calcmathcalC(c[i]))/Q/(np.pi*1.e7*1.e6)
-        Tic[i] = 3. * kappa/ (dTsdTad-1) * ( calcPL(c[i])+calcPC(c[i])+calcPX(c[i]) )/ Q /c[i]
-        S[i] = 3* kappa * rho0 * gprim * gamma * TL0/K0 *( 1./Tic[i]-1)
+        Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC(c[i])+calcPX(c[i]) )/ Q /c[i]
+        S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL0/K0 *( 1./Tic[i]-1)
 
     tauIC=(mathcalL+mathcalX+mathcalC)/Q/(np.pi*1.e7*1.e6)
    
     axarr[0].plot(c/1.e3,dcdt)
     axarr[1].plot(t,c/1.e3)
-    axarr[1].plot(t,(rICp)*(t/tauIC)**0.4/1.e3)
+    axarr[1].plot(t,(R_IC_P)*(t/tauIC)**0.4/1.e3)
     axarr2[0].plot(c/1.e3,Tic)
     axarr2[0].plot(c/1.e3,np.ones(200))
     axarr2[1].plot(c/1.e3,S*np.pi*1e7*1e9)
@@ -240,8 +240,8 @@ for tauIC in (np.arange(200,1800,200)*1.e6*1.e7*np.pi):
     S=np.zeros(200)
 
     for i in range(0,200):
-        Tic[i] = 3. * kappa/ (dTsdTad-1) * ( calcPL(c[i])+calcPC2(c[i])+calcPX2(c[i]) )/ (mathcalX+ mathcalC+mathcalL) /c[i] *tauIC
-        S[i] = 3* kappa * rho0 * gprim * gamma * TLricp/K0 *( 1./Tic[i]-1)
+        Tic[i] = 3. * KAPPA/ (DTS_DTAD-1) * ( calcPL(c[i])+calcPC2(c[i])+calcPX2(c[i]) )/ (mathcalX+ mathcalC+mathcalL) /c[i] *tauIC
+        S[i] = 3* KAPPA * RHO_0 * G_PRIM * GAMMA * TL_RIC/K0 *( 1./Tic[i]-1)
 
 
     axarr3[0].plot(c/1.e3,Tic)
@@ -250,7 +250,7 @@ for tauIC in (np.arange(200,1800,200)*1.e6*1.e7*np.pi):
     axarr3[1].plot(c/1.e3,np.zeros(200))
 
 axarr3[0].set_title('Tic et S as fn of radius for diff age of IC')
-print TL0, calcTempFusion(rICp)
+print TL0, calcTempFusion(R_IC_P)
 
 
 
@@ -263,7 +263,7 @@ for i in range(0,200):
     Px[i] = calcmathcalX(c[i])
     Pc[i] = calcmathcalC(c[i])
 
-t=(Pl+Px+Pc)/Qcmb0/(np.pi*1.e7*1.e6)
+t=(Pl+Px+Pc)/QCMB/(np.pi*1.e7*1.e6)
 
 f4, axarr4 = plt.subplots(1,2)
 axarr4[0].plot(c/1.e3, Pl, c/1.e3, Px,c/1.e3, Pc,c/1.e3, Pl+Px+Pc)
